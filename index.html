@@ -3,32 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FFE14D">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FFE14D'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%231A2140' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#EDF1EE">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F7563'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%23F9FBF9' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <script src="https://accounts.google.com/gsi/client" async></script>
 <title>Homework HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;500;600&display=swap">
 <style>
 /* Layout: one narrow column. Type-to-add bar on top, one highlighted "do this next" card, then due-date buckets. */
 :root{
-  --paper:#F2F4FA; --card:#FFFFFF; --ink:#1A2140; --muted:#5A6383; --line:#DDE2EF;
-  --hi:#FFE14D; --hi-ink:#1A2140; --pen:#2F55E0; --pen-soft:#E3E9FF;
-  --late:#D2334A; --late-soft:#FDE6EA; --today:#C96A0A; --today-soft:#FFF0DC; --ok:#178A55; --ok-soft:#DDF5E9;
-  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  /* calm palette: sage paper, one muted teal accent, softened status colors */
+  --paper:#EDF1EE; --card:#F9FBF9; --ink:#22302A; --muted:#66776F; --line:#D8E1DB;
+  --hi:#DFEBE5; --hi-ink:#22302A; --pen:#2F7563; --pen-soft:#DCEBE5;
+  --late:#B0473F; --late-soft:#F5E3E0; --today:#A5701F; --today-soft:#F5EBD9; --ok:#2F7563; --ok-soft:#DCEBE5;
+  --display:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --r:14px;
+  --r:18px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#11141E; --card:#1A1F2E; --ink:#E9ECF6; --muted:#9AA3C0; --line:#2B3247;
-  --hi:#FFD93D; --hi-ink:#14182A; --pen:#86A2FF; --pen-soft:#232C4D;
-  --late:#FF6B7F; --late-soft:#3A1D25; --today:#FFA94D; --today-soft:#3A2A17; --ok:#4FD69A; --ok-soft:#173327;
+  --paper:#131917; --card:#1B2320; --ink:#DCE5E0; --muted:#8D9F97; --line:#2A3531;
+  --hi:#1F2E29; --hi-ink:#DCE5E0; --pen:#7DC0AC; --pen-soft:#22342E;
+  --late:#E38B83; --late-soft:#3A2522; --today:#D9AE68; --today-soft:#352B1C; --ok:#7DC0AC; --ok-soft:#22342E;
   color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#11141E; --card:#1A1F2E; --ink:#E9ECF6; --muted:#9AA3C0; --line:#2B3247;
-  --hi:#FFD93D; --hi-ink:#14182A; --pen:#86A2FF; --pen-soft:#232C4D;
-  --late:#FF6B7F; --late-soft:#3A1D25; --today:#FFA94D; --today-soft:#3A2A17; --ok:#4FD69A; --ok-soft:#173327;
+  --paper:#131917; --card:#1B2320; --ink:#DCE5E0; --muted:#8D9F97; --line:#2A3531;
+  --hi:#1F2E29; --hi-ink:#DCE5E0; --pen:#7DC0AC; --pen-soft:#22342E;
+  --late:#E38B83; --late-soft:#3A2522; --today:#D9AE68; --today-soft:#352B1C; --ok:#7DC0AC; --ok-soft:#22342E;
   color-scheme:dark}
 body{margin:0;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 [hidden]{display:none!important}
@@ -166,9 +167,55 @@ footer{font-size:.82rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;
 .canvas .row input{flex:1;min-width:0;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px}
 .drop{border:2px dashed var(--line);border-radius:14px;padding:16px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center}
 .drop.over{border-color:var(--pen);background:var(--pen-soft);color:var(--pen)}
-.small{font-size:.85rem;color:var(--muted)}
+p.small{font-size:.85rem;color:var(--muted)}
 .banner{background:var(--pen-soft);border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.92rem}
 a.link{color:var(--pen);font-weight:700}
+
+/* ---- calm & focused overrides ---- */
+.wrap{max-width:620px;gap:28px;padding-block:28px 96px}
+h1{font-weight:600;font-size:1.35rem;letter-spacing:-.01em;color:var(--muted)}
+h1 mark{background:none;color:var(--pen);padding:0}
+.pill{background:transparent;border-color:transparent;color:var(--muted);padding:4px 6px}
+.pill b{font-family:var(--display);font-weight:600;color:var(--ink)}
+.hbtn{background:transparent;color:var(--muted);border-color:var(--line)}
+#q{border-width:1.5px;border-radius:16px;background:var(--card);font-size:1.05rem}
+.btn{border-radius:14px;font-weight:700}
+.chip{font-weight:600}
+.dayline{color:var(--muted);font-size:.95rem;margin:0 0 12px;text-align:center}
+.dayline b{color:var(--ink);font-weight:700}
+.next{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:26px;padding:32px 24px;align-items:center;text-align:center;gap:16px}
+.next .eyebrow{color:var(--pen);opacity:1;letter-spacing:.1em}
+.next h2{font-weight:500;font-size:clamp(1.6rem,6vw,2.3rem);line-height:1.2;max-width:22ch}
+.next .meta{justify-content:center;font-weight:600;color:var(--muted)}
+.next .meta span{background:var(--paper)}
+.next .acts{justify-content:center;flex-direction:column;align-items:stretch;width:100%;max-width:320px}
+.next .acts .btn{background:var(--pen);color:var(--card);font-size:1.1rem;padding:16px 20px}
+.next .acts .more{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.next .acts .btn.ghost{background:transparent;color:var(--muted);border:0;font-size:.92rem;padding:8px 10px;font-weight:600}
+.next .acts .btn.ghost:hover{color:var(--ink);background:var(--paper)}
+.next.empty{background:var(--card)}
+.quick{justify-content:center;color:var(--muted)}
+.quick button{border-color:var(--line);color:var(--muted)}
+.quick button[aria-pressed="true"]{background:var(--pen);color:var(--card);border-color:var(--pen)}
+.ghead h3{font-weight:500;font-size:1rem;color:var(--muted)}
+.group.late h3{color:var(--late)} .group.today h3{color:var(--ink)}
+.task{border-color:var(--line);border-radius:16px;background:var(--card)}
+.task.late,.task.today{box-shadow:none;border-color:var(--line)}
+.task.late .due{color:var(--late)}
+.check{border-width:2px;border-color:var(--line);width:28px;height:28px}
+.ttitle{font-weight:600}
+.go{background:transparent;color:var(--muted)}
+.go:hover{background:var(--pen-soft);color:var(--pen)}
+.imp{color:var(--late);font-weight:700}
+.showall{align-self:center;background:transparent;border:1.5px dashed var(--line);color:var(--muted);border-radius:999px;padding:9px 18px;font-weight:600}
+.showall:hover{color:var(--ink);border-color:var(--muted)}
+.empty-state{border-style:solid;border-width:1px;background:var(--card)}
+.empty-state h2{font-weight:500}
+.banner{background:var(--card);border:1px solid var(--line)}
+.ring .fg{stroke:var(--pen)}
+.fwrap h2{font-weight:500}
+.ring .t{font-weight:500}
+.next .btn.hi,.btn.hi{background:var(--pen);color:var(--card)}
 @media (max-width:480px){.addrow .btn{padding:12px 14px}.trow{gap:10px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -179,8 +226,8 @@ a.link{color:var(--pen);font-weight:700}
   <header>
     <h1>Homework <mark>HQ</mark></h1>
     <div class="stats">
-      <span class="pill" title="Days in a row with at least one thing done">🔥 <b id="streak">0</b> day streak</span>
-      <span class="pill">✓ <b id="doneToday">0</b> done today</span>
+      <span class="pill" title="Days in a row with at least one thing done"><b id="streak">0</b> day streak</span>
+      <span class="pill"><b id="doneToday">0</b> done today</span>
       <button class="hbtn" id="canvasBtn" aria-expanded="false">Canvas</button>
     </div>
   </header>
@@ -282,7 +329,7 @@ function parse(raw) {
 
 // ---------- class colours ----------
 const HUES = [222, 340, 160, 28, 268, 190, 0, 95, 300, 45];
-function clsColor(name) { let h = 0; for (const c of name.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0; return "hsl(" + HUES[h % HUES.length] + " 70% 52%)"; }
+function clsColor(name) { let h = 0; for (const c of name.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0; return "hsl(" + HUES[h % HUES.length] + " 40% 55%)"; }
 
 // ---------- setup ----------
 // Paste your Google OAuth "Web application" client ID here (see README.md).
@@ -420,7 +467,7 @@ const clsChip = c => c ? h("span", { class: "chip cls", style: "background:color
 
 function renderPreview() {
   const v = $("q").value, el = $("preview"); el.textContent = "";
-  if (!v.trim()) { el.append(h("span", { class: "hint" }, "Try ", h("code", null, "bio reading ch 4 tmrw 30m"), " or ", h("code", null, "essay draft fri 11:59pm !"))); return; }
+  if (!v.trim()) { el.append(h("span", { class: "hint" }, "Try ", h("code", null, "bio reading ch 4 tmrw 30m"), " or ", h("code", null, "essay fri 11:59pm"))); return; }
   if (v.includes("\n")) { el.append(h("span", null, "Adding " + v.split("\n").filter(s => s.trim()).length + " things")); return; }
   const p = parse(v);
   el.append(h("span", null, "→"), clsChip(p.cls), h("span", { class: "chip" }, (p.dateGiven ? "" : "guessing ") + dueLabel(p).text + " · " + MON[fromYmd(p.due).getMonth()].replace(/^./, c => c.toUpperCase()) + " " + fromYmd(p.due).getDate()), p.est ? h("span", { class: "chip" }, fmtEst(p.est)) : null, p.important ? h("span", { class: "chip", style: "background:var(--late-soft);color:var(--late)" }, "important") : null, h("b", { style: "overflow-wrap:anywhere" }, p.title || "…"));
@@ -445,15 +492,16 @@ function renderNext() {
   const t = pickNext();
   const dl = dueLabel(t), more = all.length - 1;
   const card = h("div", { class: "next" },
-    h("div", { class: "eyebrow" }, state.quickWin ? "Quick win" : "Do this next"),
+    h("div", { class: "eyebrow" }, state.quickWin ? "Quick win" : "Just this one"),
     h("h2", null, t.title),
     h("div", { class: "meta" }, t.cls ? h("span", null, t.cls) : null, h("span", null, dl.text), t.est ? h("span", null, "~" + fmtEst(t.est)) : null, t.steps && t.steps.length ? h("span", null, (t.steps.length - stepsLeft(t)) + "/" + t.steps.length + " steps") : null),
     (t.snoozes || 0) >= 3 ? h("div", { class: "nudge" }, "You've pushed this " + t.snoozes + " times. Could you shrink it to a 5-minute first step? Open it below and add one.") : null,
     h("div", { class: "acts" },
-      h("button", { class: "btn", onclick: () => startFocus(t) }, "▶ Start " + (focusLen(t)) + " min"),
-      h("button", { class: "btn ghost", onclick: e => complete(t, e.currentTarget) }, "Already done"),
-      more ? h("button", { class: "btn ghost", onclick: () => { state.skipped.add(t.id); if (open().every(x => state.skipped.has(x.id))) state.skipped.clear(); render(); } }, "Not this one") : null,
-      h("button", { class: "btn ghost", onclick: () => snooze(t) }, "Tomorrow")),
+      h("button", { class: "btn", onclick: () => startFocus(t) }, "Start a " + (focusLen(t)) + " min focus"),
+      h("div", { class: "more" },
+        h("button", { class: "btn ghost", onclick: e => complete(t, e.currentTarget) }, "Already done"),
+        more ? h("button", { class: "btn ghost", onclick: () => { state.skipped.add(t.id); if (open().every(x => state.skipped.has(x.id))) state.skipped.clear(); render(); } }, "Something else") : null,
+        h("button", { class: "btn ghost", onclick: () => snooze(t) }, "Do it tomorrow"))),
     h("div", { class: "quick" }, "Only have a few minutes?", h("button", { "aria-pressed": String(state.quickWin), onclick: () => { state.quickWin = !state.quickWin; state.skipped.clear(); render(); } }, state.quickWin ? "Showing quick wins" : "Show a quick win")));
   if (state.quickWin && !open().some(x => x.est && x.est <= 15)) card.querySelector(".eyebrow").textContent = "No 15-minute tasks yet, so here's the most urgent";
   slot.append(card);
@@ -465,8 +513,8 @@ function taskEl(t) {
     h("div", { class: "trow" },
       h("button", { class: "check", "aria-label": t.done ? "Mark not done" : "Mark done", onclick: e => t.done ? uncomplete(t) : complete(t, e.currentTarget) }, checkSvg()),
       h("button", { class: "tmain", "aria-expanded": String(isOpen), onclick: () => { state.open = isOpen ? null : t.id; render(); } },
-        h("span", { class: "ttitle" }, t.important ? "❗ " : "", t.title),
-        h("span", { class: "tmeta" }, clsChip(t.cls), h("span", { class: "due " + (t.done ? "" : dl.cls) }, t.done ? "Done" : dl.text), t.est ? h("span", null, "· " + fmtEst(t.est)) : null,
+        h("span", { class: "ttitle" }, t.title),
+        h("span", { class: "tmeta" }, t.important ? h("span", { class: "imp" }, "Important ·") : null, clsChip(t.cls), h("span", { class: "due " + (t.done ? "" : dl.cls) }, t.done ? "Done" : dl.text), t.est ? h("span", null, "· " + fmtEst(t.est)) : null,
           t.steps && t.steps.length ? h("span", { class: "bar", title: (t.steps.length - stepsLeft(t)) + " of " + t.steps.length + " steps" }, h("i", { style: "width:" + Math.round(100 * (t.steps.length - stepsLeft(t)) / t.steps.length) + "%" })) : null)),
       t.done ? null : h("button", { class: "go", onclick: () => startFocus(t), "aria-label": "Start focus timer for " + t.title }, "▶")));
   if (isOpen) el.append(detailEl(t));
@@ -516,11 +564,19 @@ function render() {
     ["Later", "", t => t.due && diff(t.due, t0) > 7],
     ["No date", "", t => !t.due]];
   const items = open().sort((a, b) => sortKey(a) < sortKey(b) ? -1 : 1);
-  groups.forEach(([name, cls, fn]) => {
-    const g = items.filter(fn); if (!g.length) return;
+  // calm by default: only overdue + today are shown; the rest waits behind one button
+  const filled = groups.map(([name, cls, fn]) => [name, cls, items.filter(fn)]).filter(x => x[2].length);
+  let shown = filled.filter(x => x[1]); if (!shown.length) shown = filled.slice(0, 1);
+  const hiddenN = filled.filter(x => !shown.includes(x)).reduce((a, x) => a + x[2].length, 0);
+  (state.showAll ? filled : shown).forEach(([name, cls, g]) => {
     const mins = g.reduce((a, t) => a + (t.est || 0), 0);
     L.append(h("section", { class: "group " + cls }, h("div", { class: "ghead" }, h("h3", null, name), h("span", { class: "n" }, g.length + (g.length === 1 ? " thing" : " things") + (mins ? " · ~" + fmtEst(mins) : ""))), g.map(taskEl)));
   });
+  if (hiddenN) L.append(h("button", { class: "showall", "aria-expanded": String(!!state.showAll), onclick: () => { state.showAll = !state.showAll; try { localStorage.setItem("hwhq.showAll", state.showAll ? "1" : ""); } catch (e) {} render(); } },
+    state.showAll ? "Hide what's coming up" : "Show what's coming up (" + hiddenN + ")"));
+  // one calm line of orientation above the main card
+  const td = items.filter(t => t.due && diff(t.due, t0) <= 0), tm = td.reduce((a, t) => a + (t.est || 0), 0);
+  if (state.tasks.size && items.length) $("nextSlot").prepend(h("p", { class: "dayline" }, td.length ? h("span", null, "Today: ", h("b", null, td.length + (td.length === 1 ? " thing" : " things")), tm ? ", about " + fmtEst(tm) : "", ". One at a time.") : "Nothing due today. Getting ahead is a bonus."));
   const done = [...state.tasks.values()].filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
   if (done.length) {
     const box = h("details", { class: "donebox" }, h("summary", null, "Finished (" + done.length + ")"),
@@ -575,8 +631,8 @@ function celebrate(fromEl) {
   const cv = $("confetti"), ctx = cv.getContext("2d"); cv.hidden = false;
   const dpr = devicePixelRatio || 1; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.scale(dpr, dpr);
   const r = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
-  const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2, cols = ["#FFD93D", "#2F55E0", "#4FD69A", "#FF6B7F", "#FFA94D", "#B07CFF"];
-  const ps = Array.from({ length: 70 }, () => ({ x: x0, y: y0, vx: (Math.random() - .5) * 11, vy: -Math.random() * 11 - 3, s: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
+  const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2, cols = ["#7DC0AC", "#2F7563", "#C9DDD5", "#E7C98F", "#A9C7E8"];
+  const ps = Array.from({ length: 40 }, () => ({ x: x0, y: y0, vx: (Math.random() - .5) * 11, vy: -Math.random() * 11 - 3, s: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
   let f = 0;
   (function step() { ctx.clearRect(0, 0, innerWidth, innerHeight); ps.forEach(p => { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); }); if (++f < 90) requestAnimationFrame(step); else { ctx.setTransform(1, 0, 0, 1, 0, 0); cv.hidden = true; } })();
 }
@@ -706,9 +762,9 @@ function renderCanvas() {
   const slot = $("canvasSlot"); slot.textContent = "";
   state.sync = state.sync || state.prefs.sync;
   const btn = $("canvasBtn"), url = feedUrl(), auto = state.sync && state.sync.last, last = Math.max(state.prefs.canvasLast || 0, auto || 0) || null;
-  btn.className = "hbtn" + (last ? " on" : ""); btn.textContent = auto ? "✓ Canvas auto-sync" : last ? "✓ Canvas" : "Connect Canvas"; btn.setAttribute("aria-expanded", String(!!state.canvasOpen));
+  btn.hidden = false; btn.className = "hbtn" + (last ? " on" : ""); btn.textContent = auto ? "✓ Canvas auto-sync" : last ? "✓ Canvas" : "Connect Canvas"; btn.setAttribute("aria-expanded", String(!!state.canvasOpen));
   const g = state.gcal || {};
-  if (g.status === "signin") { btn.className = "hbtn"; btn.textContent = "Connect Google"; slot.append(h("div", { class: "banner" }, h("span", null, "Connect your Google account to pull in Canvas homework from your calendar and sync across devices."), h("button", { class: "btn small", onclick: signIn }, "Connect Google"))); return; }
+  if (g.status === "signin") { btn.hidden = true; btn.textContent = "Connect Google"; slot.append(h("div", { class: "banner" }, h("span", null, "Connect your Google account to pull in Canvas homework from your calendar and sync across devices."), h("button", { class: "btn small", onclick: signIn }, "Connect Google"))); return; }
   if (g.status === "err" || g.status === "nocal") slot.append(h("div", { class: "banner" }, h("span", null, g.msg), h("button", { class: "btn small", onclick: () => gcalSync(true) }, "Try again")));
   if (auto) {
     if (state.canvasOpen) slot.append(h("div", { class: "canvas" },
@@ -761,6 +817,7 @@ let lastDay = today();
 setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); } }, 60000);
 document.addEventListener("visibilitychange", () => { if (document.hidden) return; render(); if (state.token && (!state.sync || Date.now() - (state.sync.last || 0) > 30 * 60000)) gcalSync(); });
 
+try { state.showAll = localStorage.getItem("hwhq.showAll") === "1"; } catch (e) {}
 lsLoad(); state.sync = state.prefs.sync; renderPreview(); render(); setSync(false); initGoogle();
 if (GOOGLE_CLIENT_ID) setInterval(() => { if (state.token && Date.now() > state.tokenExp - 120000 && !document.hidden) tokenClient.requestAccessToken({ prompt: "" }); }, 60000);
 })();
