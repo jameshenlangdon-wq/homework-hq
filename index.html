@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFE14D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FFE14D'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%231A2140' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<title>Homework HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: one narrow column. Type-to-add bar on top, one highlighted "do this next" card, then due-date buckets. */
+:root{
+  --paper:#F2F4FA; --card:#FFFFFF; --ink:#1A2140; --muted:#5A6383; --line:#DDE2EF;
+  --hi:#FFE14D; --hi-ink:#1A2140; --pen:#2F55E0; --pen-soft:#E3E9FF;
+  --late:#D2334A; --late-soft:#FDE6EA; --today:#C96A0A; --today-soft:#FFF0DC; --ok:#178A55; --ok-soft:#DDF5E9;
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11141E; --card:#1A1F2E; --ink:#E9ECF6; --muted:#9AA3C0; --line:#2B3247;
+  --hi:#FFD93D; --hi-ink:#14182A; --pen:#86A2FF; --pen-soft:#232C4D;
+  --late:#FF6B7F; --late-soft:#3A1D25; --today:#FFA94D; --today-soft:#3A2A17; --ok:#4FD69A; --ok-soft:#173327;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11141E; --card:#1A1F2E; --ink:#E9ECF6; --muted:#9AA3C0; --line:#2B3247;
+  --hi:#FFD93D; --hi-ink:#14182A; --pen:#86A2FF; --pen-soft:#232C4D;
+  --late:#FF6B7F; --late-soft:#3A1D25; --today:#FFA94D; --today-soft:#3A2A17; --ok:#4FD69A; --ok-soft:#173327;
+  color-scheme:dark}
+body{margin:0;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.45}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pen);outline-offset:2px;border-radius:8px}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:20px 80px;display:flex;flex-direction:column;gap:22px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:1.7rem;letter-spacing:-.02em;margin:0;line-height:1}
+h1 mark{background:linear-gradient(transparent 55%,var(--hi) 55%);color:inherit;padding:0 2px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill b{font-family:var(--display);font-size:1rem}
+
+/* quick add */
+.add{display:flex;flex-direction:column;gap:8px}
+.addrow{display:flex;gap:8px}
+#q{flex:1;min-width:0;font-size:1.15rem;padding:14px 16px;border-radius:var(--r);border:2px solid var(--line);background:var(--card);outline:none}
+#q:focus{border-color:var(--pen)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;background:var(--pen);color:var(--card);white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.hi{background:var(--hi);color:var(--hi-ink)}
+.btn.small{padding:7px 12px;font-size:.9rem;border-radius:10px}
+.preview{min-height:1.6em;font-size:.92rem;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.82rem;font-weight:700;background:var(--pen-soft);color:var(--pen);white-space:nowrap}
+.chip.cls{color:var(--ink)}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+.hint{font-size:.85rem;color:var(--muted)}
+.hint code{font-family:var(--body);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:0 5px}
+
+/* next card */
+.next{background:var(--hi);color:var(--hi-ink);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px;position:relative}
+.next .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.next h2{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.1;margin:0;text-wrap:balance;overflow-wrap:anywhere}
+.next .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.92rem;font-weight:700}
+.next .meta span{background:rgba(255,255,255,.55);padding:3px 10px;border-radius:999px}
+.next .acts{display:flex;gap:8px;flex-wrap:wrap}
+.next .acts .btn{background:var(--hi-ink);color:var(--hi)}
+.next .acts .btn.ghost{background:transparent;color:var(--hi-ink);border-color:rgba(20,24,42,.3)}
+.next.empty{background:var(--ok-soft);color:var(--ink)}
+.quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.85rem}
+.quick button{border:1.5px solid rgba(20,24,42,.25);background:transparent;color:inherit;border-radius:999px;padding:3px 10px;font-weight:700}
+.quick button[aria-pressed="true"]{background:var(--hi-ink);color:var(--hi)}
+
+/* lists */
+section.group{display:flex;flex-direction:column;gap:8px}
+.ghead{display:flex;align-items:baseline;gap:10px}
+.ghead h3{font-family:var(--display);font-weight:800;font-size:1.05rem;margin:0}
+.ghead .n{color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+.group.late h3{color:var(--late)}
+.group.today h3{color:var(--today)}
+.task{background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column}
+.task.late{border-color:var(--late);box-shadow:inset 4px 0 0 var(--late)}
+.task.today{box-shadow:inset 4px 0 0 var(--today)}
+.trow{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2.5px solid var(--muted);background:transparent;display:grid;place-items:center;padding:0}
+.check:hover{border-color:var(--ok);background:var(--ok-soft)}
+.check svg{width:16px;height:16px;opacity:0}
+.check:hover svg{opacity:.5}
+.task.done .check{background:var(--ok);border-color:var(--ok)}
+.task.done .check svg{opacity:1;stroke:var(--card)}
+.tmain{flex:1;min-width:0;background:none;border:0;text-align:left;padding:0;display:flex;flex-direction:column;gap:3px}
+.ttitle{font-weight:700;overflow-wrap:anywhere}
+.task.done .ttitle{text-decoration:line-through;color:var(--muted)}
+.tmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.82rem;color:var(--muted)}
+.due{font-weight:700}
+.due.late{color:var(--late)} .due.today{color:var(--today)}
+.bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;width:60px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.go{flex:none;border:0;background:var(--pen-soft);color:var(--pen);border-radius:10px;padding:7px 10px;font-weight:700;font-size:.85rem}
+.tdetail{border-top:1px solid var(--line);padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:.82rem;color:var(--muted);font-weight:700}
+.field input{font-weight:400;font-size:1rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.estrow{display:flex;gap:6px;flex-wrap:wrap}
+.estrow button{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font-weight:700;font-size:.85rem}
+.estrow button[aria-pressed="true"]{background:var(--pen);color:var(--card);border-color:var(--pen)}
+.steps{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.steps li{display:flex;align-items:center;gap:8px}
+.steps input[type=checkbox]{width:20px;height:20px;accent-color:var(--ok);flex:none}
+.steps .st{flex:1;min-width:0;overflow-wrap:anywhere}
+.steps li.d .st{text-decoration:line-through;color:var(--muted)}
+.x{border:0;background:none;color:var(--muted);font-size:1.1rem;padding:2px 6px;border-radius:6px}
+.x:hover{color:var(--late)}
+.stepadd{display:flex;gap:6px}
+.stepadd input{flex:1;min-width:0;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px}
+.drow{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.drow .l{display:flex;gap:8px;flex-wrap:wrap}
+.danger{color:var(--late)!important}
+.nudge{background:var(--today-soft);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:.9rem}
+
+.empty-state{background:var(--card);border:2px dashed var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.empty-state h2{font-family:var(--display);font-weight:800;margin:0;font-size:1.4rem}
+.tries{display:flex;flex-direction:column;gap:6px}
+.tries button{text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px}
+.tries button:hover{border-color:var(--pen)}
+details.donebox summary{cursor:pointer;color:var(--muted);font-weight:700;padding:4px 0}
+details.donebox[open] summary{margin-bottom:8px}
+.donelist{display:flex;flex-direction:column;gap:8px}
+footer{font-size:.82rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.sync::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+.sync.on::before{background:var(--ok)}
+
+/* focus */
+#focus{position:fixed;inset:0;background:var(--paper);z-index:10;overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.fwrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.fwrap .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fwrap h2{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,6vw,2.4rem);margin:0;line-height:1.1;text-wrap:balance;overflow-wrap:anywhere}
+.ring{position:relative;width:min(240px,70vw);aspect-ratio:1;max-width:100%}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:var(--pen);stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+.ring .t{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,10vw,3.4rem);font-variant-numeric:tabular-nums}
+.fsteps{width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.fsteps .lbl{font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:6px}
+.frow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.msg{font-weight:700;color:var(--pen)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:20;width:100%;height:100%}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-weight:700;z-index:30;display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:var(--hi);font-weight:700;padding:0}
+/* canvas */
+.hbtn{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;white-space:nowrap}
+.hbtn.on{border-color:var(--ok);color:var(--ok)}
+.canvas{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.canvas h2{font-family:var(--display);font-weight:800;margin:0;font-size:1.25rem}
+.canvas ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:12px}
+.canvas li{padding-left:4px}
+.canvas li > p{margin:0 0 6px}
+.canvas .row{display:flex;gap:8px;flex-wrap:wrap}
+.canvas .row input{flex:1;min-width:0;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:16px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center}
+.drop.over{border-color:var(--pen);background:var(--pen-soft);color:var(--pen)}
+.small{font-size:.85rem;color:var(--muted)}
+.banner{background:var(--pen-soft);border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.92rem}
+a.link{color:var(--pen);font-weight:700}
+@media (max-width:480px){.addrow .btn{padding:12px 14px}.trow{gap:10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <h1>Homework <mark>HQ</mark></h1>
+    <div class="stats">
+      <span class="pill" title="Days in a row with at least one thing done">🔥 <b id="streak">0</b> day streak</span>
+      <span class="pill">✓ <b id="doneToday">0</b> done today</span>
+      <button class="hbtn" id="canvasBtn" aria-expanded="false">Canvas</button>
+    </div>
+  </header>
+  <div id="canvasSlot"></div>
+
+  <div class="add">
+    <div class="addrow">
+      <input id="q" type="text" autocomplete="off" enterkeyhint="done" placeholder="Type it like you'd text it: math wksht fri 20m" aria-label="Add homework">
+      <button class="btn" id="addBtn">Add</button>
+    </div>
+    <div class="preview" id="preview" aria-live="polite"></div>
+  </div>
+
+  <div id="nextSlot"></div>
+  <div id="lists" style="display:flex;flex-direction:column;gap:22px"></div>
+
+  <footer>
+    <span class="sync" id="sync">Saved on this device</span>
+    <span>Press <b>N</b> to add · paste a list to add many</span>
+  </footer>
+</div>
+
+<div id="focus" hidden></div>
+<canvas id="confetti" hidden></canvas>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+// ---------- dates ----------
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const fromYmd = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const today = () => ymd(new Date());
+const addDays = (s, n) => { const d = fromYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diff = (a, b) => Math.round((fromYmd(a) - fromYmd(b)) / 864e5);
+const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MON = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+function fmtTime(t) { if (!t) return ""; let [h, m] = t.split(":").map(Number); const ap = h >= 12 ? "pm" : "am"; h = h % 12 || 12; return h + (m ? ":" + pad(m) : "") + ap; }
+function dueLabel(t) {
+  if (!t.due) return { text: "No date", cls: "" };
+  const d = diff(t.due, today()), tm = t.time ? " " + fmtTime(t.time) : "";
+  if (d < 0) return { text: (d === -1 ? "Due yesterday" : "Overdue " + (-d) + " days"), cls: "late" };
+  if (d === 0) return { text: "Due today" + tm, cls: "today" };
+  if (d === 1) return { text: "Tomorrow" + tm, cls: "" };
+  const dt = fromYmd(t.due);
+  if (d < 7) return { text: DOW[dt.getDay()] + tm, cls: "" };
+  return { text: MON[dt.getMonth()].replace(/^./, c => c.toUpperCase()) + " " + dt.getDate() + tm, cls: "" };
+}
+const fmtEst = m => !m ? "" : m < 60 ? m + " min" : (m % 60 ? (m / 60).toFixed(1).replace(/\.0$/, "") : m / 60) + " hr";
+
+// ---------- parsing ----------
+const SUBJECTS = "math algebra geometry calc calculus precalc stats english lit literature writing bio biology chem chemistry physics science earth history apush gov government civics econ economics psych psychology sociology spanish french german latin chinese mandarin japanese italian art music band choir cs coding compsci health pe theater drama religion philosophy".split(" ");
+const WD = { sun:0,sunday:0,mon:1,monday:1,tue:2,tues:2,tuesday:2,wed:3,weds:3,wednesday:3,thu:4,thur:4,thurs:4,thursday:4,fri:5,friday:5,sat:6,saturday:6 };
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function knownClasses() { const s = new Set(); state.tasks.forEach(t => t.cls && s.add(t.cls.toLowerCase())); return s; }
+
+function parse(raw) {
+  let s = " " + raw.trim() + " ";
+  const out = { title: "", cls: "", due: null, time: null, est: null, important: false, dateGiven: false };
+  const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(re, " "); return true; } return false; };
+  const t0 = today();
+  take(/\s(!+|urgent|important)(?=\s)/i, () => out.important = true);
+  take(/\s#([\w-]+)(?=\s)/, m => out.cls = cap(m[1]));
+  take(/\s(\d+(?:\.\d+)?)\s?(m|min|mins|minutes|h|hr|hrs|hour|hours)(?=\s)/i, m => { const n = parseFloat(m[1]); out.est = Math.round(/^h/i.test(m[2]) ? n * 60 : n); });
+  take(/\s(?:at\s)?(\d{1,2})(?::(\d{2}))?\s?(am|pm)(?=\s)/i, m => { let h = +m[1] % 12; if (/pm/i.test(m[3])) h += 12; out.time = pad(h) + ":" + (m[2] || "00"); })
+    || take(/\s(?:at\s)?(\d{1,2}):(\d{2})(?=\s)/, m => out.time = pad(+m[1]) + ":" + m[2])
+    || take(/\s(?:at\s)?(noon|midnight)(?=\s)/i, m => out.time = /noon/i.test(m[1]) ? "12:00" : "23:59");
+  const pre = "(?:due\\s|by\\s|on\\s|for\\s)?";
+  const dateTakers = [
+    [new RegExp("\\s" + pre + "(today|tonight)(?=\\s)", "i"), () => t0],
+    [new RegExp("\\s" + pre + "(tomorrow|tmrw|tmr|tmw)(?=\\s)", "i"), () => addDays(t0, 1)],
+    [new RegExp("\\s" + pre + "next\\sweek(?=\\s)", "i"), () => addDays(t0, 7)],
+    [new RegExp("\\s" + pre + "in\\s(\\d+)\\s?(day|days|d|week|weeks|w)(?=\\s)", "i"), m => addDays(t0, +m[1] * (/^w/i.test(m[2]) ? 7 : 1))],
+    [new RegExp("\\s" + pre + "(next\\s)?(" + Object.keys(WD).join("|") + ")\\.?(?=\\s)", "i"), m => {
+      const want = WD[m[2].toLowerCase()], now = new Date().getDay();
+      let add = (want - now + 7) % 7; if (m[1] && add === 0) add = 7; return addDays(t0, add); }],
+    [new RegExp("\\s" + pre + "(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?(?=\\s)"), m => {
+      let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
+      let d = ymd(new Date(y, +m[1] - 1, +m[2])); if (!m[3] && diff(d, t0) < -30) d = ymd(new Date(y + 1, +m[1] - 1, +m[2])); return d; }],
+    [new RegExp("\\s" + pre + "(" + MON.join("|") + ")[a-z]*\\.?\\s(\\d{1,2})(?:st|nd|rd|th)?(?=\\s)", "i"), m => {
+      const y = new Date().getFullYear(), mo = MON.indexOf(m[1].toLowerCase().slice(0, 3));
+      let d = ymd(new Date(y, mo, +m[2])); if (diff(d, t0) < -30) d = ymd(new Date(y + 1, mo, +m[2])); return d; }],
+  ];
+  for (const [re, fn] of dateTakers) { if (take(re, m => out.due = fn(m))) { out.dateGiven = true; break; } }
+  s = s.replace(/\s(due|by|on|at|for)\s*$/i, " ").replace(/\s+/g, " ").trim();
+  if (!out.cls) {
+    const first = s.split(" ")[0] || "", lw = first.toLowerCase().replace(/:$/, "");
+    if (s.includes(" ") && (SUBJECTS.includes(lw) || knownClasses().has(lw))) {
+      const existing = [...state.tasks].find(t => t.cls && t.cls.toLowerCase() === lw);
+      out.cls = existing ? existing.cls : (["apush","cs","pe"].includes(lw) ? lw.toUpperCase() : cap(lw));
+      s = s.slice(first.length).replace(/^[\s:-]+/, "");
+    }
+  }
+  out.title = s ? cap(s) : "";
+  if (!out.due) out.due = addDays(t0, 1);
+  return out;
+}
+
+// ---------- class colours ----------
+const HUES = [222, 340, 160, 28, 268, 190, 0, 95, 300, 45];
+function clsColor(name) { let h = 0; for (const c of name.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0; return "hsl(" + HUES[h % HUES.length] + " 70% 52%)"; }
+
+// ---------- setup ----------
+// Paste your Google OAuth "Web application" client ID here (see README.md).
+const GOOGLE_CLIENT_ID = "";
+const SCOPES = "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.appdata";
+
+// ---------- state & storage ----------
+// Saved in this browser right away, and copied to a private file in your own Google Drive
+// (the hidden app-data folder) so your phone and laptop see the same list.
+const LS = "hwhq.v1";
+const state = { tasks: new Map(), prefs: { history: {}, deleted: {} }, open: null, quickWin: false, skipped: new Set(), token: null, tokenExp: 0 };
+function lsLoad() { try { const j = JSON.parse(localStorage.getItem(LS) || "null"); if (j) { (j.tasks || []).forEach(t => state.tasks.set(t.id, t)); state.prefs = Object.assign({ history: {}, deleted: {} }, j.prefs); } } catch (e) {} }
+function lsSave() { try { localStorage.setItem(LS, JSON.stringify({ tasks: [...state.tasks.values()], prefs: state.prefs })); } catch (e) {} }
+let saveT = null;
+function cloudSoon() { if (!state.token) return; clearTimeout(saveT); saveT = setTimeout(cloudSave, 1500); }
+function saveTask(t) { t.updated = Date.now(); state.tasks.set(t.id, t); delete state.prefs.deleted[t.id]; lsSave(); render(); cloudSoon(); }
+function deleteTask(id) { state.tasks.delete(id); state.prefs.deleted[id] = Date.now(); lsSave(); render(); cloudSoon(); }
+function savePrefs() { state.prefs.updated = Date.now(); lsSave(); cloudSoon(); }
+const newId = () => "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function setSync(on) { const el = document.getElementById("sync"); el.className = "sync" + (on ? " on" : ""); el.textContent = on ? "Backed up to your Google Drive, so it follows you to your phone and laptop" : GOOGLE_CLIENT_ID ? "Saved on this device. Connect Google to sync." : "Saved on this device"; }
+
+// ---------- google sign-in ----------
+let tokenClient = null, pendingSignIn = null;
+function initGoogle() {
+  if (!GOOGLE_CLIENT_ID) return;
+  const ready = () => window.google && google.accounts && google.accounts.oauth2;
+  const go = () => {
+    tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: SCOPES, callback: r => {
+      if (r && r.access_token) { state.token = r.access_token; state.tokenExp = Date.now() + (r.expires_in || 3600) * 1000 - 60000; try { localStorage.setItem("hwhq.signedIn", "1"); } catch (e) {} afterSignIn(); }
+      else { state.gcal = { status: "signin", msg: "" }; render(); }
+      if (pendingSignIn) { pendingSignIn(); pendingSignIn = null; } },
+      error_callback: () => { state.gcal = { status: "signin", msg: "" }; render(); } });
+    let was = false; try { was = localStorage.getItem("hwhq.signedIn") === "1"; } catch (e) {}
+    if (was) tokenClient.requestAccessToken({ prompt: "" }); else { state.gcal = { status: "signin", msg: "" }; render(); }
+  };
+  (function wait(n) { if (ready()) go(); else if (n < 100) setTimeout(() => wait(n + 1), 100); })(0);
+}
+function signIn() { if (tokenClient) tokenClient.requestAccessToken({ prompt: state.token ? "" : "consent" }); }
+async function gfetch(url, opts) {
+  if (!state.token || Date.now() > state.tokenExp) { const e = new Error("signin"); e.code = "signin"; throw e; }
+  const r = await fetch(url, Object.assign({}, opts, { headers: Object.assign({ Authorization: "Bearer " + state.token }, (opts || {}).headers) }));
+  if (r.status === 401) { state.token = null; const e = new Error("signin"); e.code = "signin"; throw e; }
+  if (!r.ok) { const e = new Error((await r.text()).slice(0, 200)); e.code = r.status === 403 ? "forbidden" : "http"; throw e; }
+  return r.status === 204 ? null : r.json();
+}
+async function afterSignIn() { setSync(true); await cloudLoad(); gcalSync(); }
+
+// ---------- drive backup (one JSON file in the hidden app-data folder) ----------
+const DRIVE = "https://www.googleapis.com/drive/v3/files", UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
+let fileId = null;
+async function cloudLoad() {
+  try {
+    const l = await gfetch(DRIVE + "?spaces=appDataFolder&fields=files(id,name)&q=" + encodeURIComponent("name='homework-hq.json'"));
+    if (!l.files || !l.files.length) { await cloudSave(); return; }
+    fileId = l.files[0].id;
+    const remote = await gfetch(DRIVE + "/" + fileId + "?alt=media");
+    merge(remote || {}); lsSave(); render();
+    cloudSave();
+  } catch (e) { if (e.code === "signin") { state.gcal = { status: "signin", msg: "" }; render(); } }
+}
+function merge(remote) {
+  const del = Object.assign({}, remote.prefs && remote.prefs.deleted, state.prefs.deleted);
+  (remote.tasks || []).forEach(t => { const mine = state.tasks.get(t.id); if ((!mine || (mine.updated || 0) < (t.updated || 0)) && !(del[t.id] >= (t.updated || 0))) state.tasks.set(t.id, t); });
+  Object.keys(del).forEach(id => { const t = state.tasks.get(id); if (t && del[id] >= (t.updated || 0)) state.tasks.delete(id); });
+  const rp = remote.prefs || {};
+  const hist = Object.assign({}, rp.history); Object.entries(state.prefs.history || {}).forEach(([d, n]) => hist[d] = Math.max(n, hist[d] || 0));
+  state.prefs = Object.assign({}, (rp.updated || 0) > (state.prefs.updated || 0) ? rp : state.prefs, { history: hist, deleted: del });
+}
+async function cloudSave() {
+  if (!state.token) return;
+  const body = JSON.stringify({ tasks: [...state.tasks.values()], prefs: state.prefs });
+  try {
+    if (fileId) await gfetch(UPLOAD + "/" + fileId + "?uploadType=media", { method: "PATCH", headers: { "Content-Type": "application/json" }, body });
+    else {
+      const b = "hwhq" + Math.random().toString(36).slice(2);
+      const multi = "--" + b + "\r\nContent-Type: application/json\r\n\r\n" + JSON.stringify({ name: "homework-hq.json", parents: ["appDataFolder"] }) + "\r\n--" + b + "\r\nContent-Type: application/json\r\n\r\n" + body + "\r\n--" + b + "--";
+      const f = await gfetch(UPLOAD + "?uploadType=multipart&fields=id", { method: "POST", headers: { "Content-Type": "multipart/related; boundary=" + b }, body: multi });
+      fileId = f.id;
+    }
+  } catch (e) { if (e.code === "signin") { setSync(false); state.gcal = { status: "signin", msg: "" }; render(); } }
+}
+
+// ---------- logic ----------
+const open = () => [...state.tasks.values()].filter(t => !t.done);
+function sortKey(t) { return (t.due || "9999-12-31") + (t.important ? "0" : "1") + (t.time || "23:59") + String(t.est || 999).padStart(4, "0"); }
+function pickNext() {
+  let list = open().sort((a, b) => sortKey(a) < sortKey(b) ? -1 : 1);
+  if (state.quickWin) list = list.filter(t => t.est && t.est <= 15 || stepsLeft(t) && t.steps.length);
+  const notSkipped = list.filter(t => !state.skipped.has(t.id));
+  return notSkipped[0] || list[0] || null;
+}
+const stepsLeft = t => (t.steps || []).filter(s => !s.done).length;
+function streak() {
+  const h = state.prefs.history || {}; let d = today(), n = 0;
+  if (!h[d]) d = addDays(d, -1);
+  while (h[d]) { n++; d = addDays(d, -1); }
+  return n;
+}
+
+function complete(t, fromEl) {
+  t.done = true; t.doneAt = Date.now();
+  const d = today(); state.prefs.history[d] = (state.prefs.history[d] || 0) + 1; savePrefs();
+  state.skipped.delete(t.id);
+  saveTask(t); celebrate(fromEl);
+  const left = open().filter(x => x.due && diff(x.due, today()) <= 0).length;
+  const lines = ["Done. Nice.", "Crossed off!", "That's one less thing.", "Look at you go.", "Boom. Next?", "Brain: lighter."];
+  toast(lines[Math.floor(Math.random() * lines.length)] + (left ? " " + left + " left for today." : " Nothing else due today."), "Undo", () => {
+    t.done = false; t.doneAt = null; state.prefs.history[d] = Math.max(0, (state.prefs.history[d] || 1) - 1); if (!state.prefs.history[d]) delete state.prefs.history[d]; savePrefs(); saveTask(t);
+  });
+}
+function uncomplete(t) { t.done = false; t.doneAt = null; saveTask(t); }
+function snooze(t) { t.due = addDays(t.due && diff(t.due, today()) >= 0 ? t.due : today(), 1); t.snoozes = (t.snoozes || 0) + 1; saveTask(t); toast("Moved to " + dueLabel(t).text.toLowerCase() + ".", "Undo", () => { t.due = addDays(t.due, -1); t.snoozes--; saveTask(t); }); }
+
+function addFromText(text) {
+  const lines = text.split(/\n|;/).map(s => s.replace(/^\s*[-*•\d.)\]]+\s*/, "").trim()).filter(Boolean);
+  let n = 0;
+  lines.forEach(line => { const p = parse(line); if (!p.title) return; n++;
+    saveTask({ id: newId(), title: p.title, cls: p.cls, due: p.due, time: p.time, est: p.est, important: p.important, steps: [], done: false, created: Date.now(), snoozes: 0 }); });
+  if (n > 1) toast("Added " + n + " things.");
+  return n;
+}
+
+// ---------- rendering ----------
+const $ = id => document.getElementById(id);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) { const v = attrs[k]; if (v == null || v === false) continue;
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else if (k === "class") e.className = v; else if (k === "style") e.style.cssText = v; else e.setAttribute(k, v === true ? "" : v); }
+  kids.flat().forEach(c => { if (c == null || c === false) return; e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const checkSvg = () => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.innerHTML = '<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>'; s.style.stroke = "var(--ok)"; return s; };
+const clsChip = c => c ? h("span", { class: "chip cls", style: "background:color-mix(in srgb," + clsColor(c) + " 18%,transparent)" }, h("span", { class: "dot", style: "background:" + clsColor(c) }), c) : null;
+
+function renderPreview() {
+  const v = $("q").value, el = $("preview"); el.textContent = "";
+  if (!v.trim()) { el.append(h("span", { class: "hint" }, "Try ", h("code", null, "bio reading ch 4 tmrw 30m"), " or ", h("code", null, "essay draft fri 11:59pm !"))); return; }
+  if (v.includes("\n")) { el.append(h("span", null, "Adding " + v.split("\n").filter(s => s.trim()).length + " things")); return; }
+  const p = parse(v);
+  el.append(h("span", null, "→"), clsChip(p.cls), h("span", { class: "chip" }, (p.dateGiven ? "" : "guessing ") + dueLabel(p).text + " · " + MON[fromYmd(p.due).getMonth()].replace(/^./, c => c.toUpperCase()) + " " + fromYmd(p.due).getDate()), p.est ? h("span", { class: "chip" }, fmtEst(p.est)) : null, p.important ? h("span", { class: "chip", style: "background:var(--late-soft);color:var(--late)" }, "important") : null, h("b", { style: "overflow-wrap:anywhere" }, p.title || "…"));
+}
+
+function renderNext() {
+  const slot = $("nextSlot"); slot.textContent = "";
+  const all = open();
+  if (!state.tasks.size) {
+    slot.append(h("div", { class: "empty-state" },
+      h("h2", null, "What's due? Dump it all in."),
+      h("p", { style: "margin:0;color:var(--muted)" }, "Type each thing the way you'd text a friend. The class, due day, and time get picked up automatically. Tap one of these to see how it works:"),
+      h("div", { class: "tries" }, ["math problem set 3.2 tomorrow 30m", "english essay outline fri 11:59pm !", "chem lab report next mon 1h", "spanish vocab quiz study wed 15m"].map(s =>
+        h("button", { onclick: () => { addFromText(s); } }, s))),
+      h("button", { class: "btn hi", style: "align-self:flex-start", onclick: () => { state.canvasOpen = true; render(); scrollTo(0, 0); } }, "Or pull everything in from Canvas")));
+    return;
+  }
+  if (!all.length) {
+    slot.append(h("div", { class: "next empty" }, h("div", { class: "eyebrow" }, "All clear"), h("h2", null, "Nothing left. Go do something fun."), h("div", { class: "meta" }, h("span", null, "Add more anytime with the box above"))));
+    return;
+  }
+  const t = pickNext();
+  const dl = dueLabel(t), more = all.length - 1;
+  const card = h("div", { class: "next" },
+    h("div", { class: "eyebrow" }, state.quickWin ? "Quick win" : "Do this next"),
+    h("h2", null, t.title),
+    h("div", { class: "meta" }, t.cls ? h("span", null, t.cls) : null, h("span", null, dl.text), t.est ? h("span", null, "~" + fmtEst(t.est)) : null, t.steps && t.steps.length ? h("span", null, (t.steps.length - stepsLeft(t)) + "/" + t.steps.length + " steps") : null),
+    (t.snoozes || 0) >= 3 ? h("div", { class: "nudge" }, "You've pushed this " + t.snoozes + " times. Could you shrink it to a 5-minute first step? Open it below and add one.") : null,
+    h("div", { class: "acts" },
+      h("button", { class: "btn", onclick: () => startFocus(t) }, "▶ Start " + (focusLen(t)) + " min"),
+      h("button", { class: "btn ghost", onclick: e => complete(t, e.currentTarget) }, "Already done"),
+      more ? h("button", { class: "btn ghost", onclick: () => { state.skipped.add(t.id); if (open().every(x => state.skipped.has(x.id))) state.skipped.clear(); render(); } }, "Not this one") : null,
+      h("button", { class: "btn ghost", onclick: () => snooze(t) }, "Tomorrow")),
+    h("div", { class: "quick" }, "Only have a few minutes?", h("button", { "aria-pressed": String(state.quickWin), onclick: () => { state.quickWin = !state.quickWin; state.skipped.clear(); render(); } }, state.quickWin ? "Showing quick wins" : "Show a quick win")));
+  if (state.quickWin && !open().some(x => x.est && x.est <= 15)) card.querySelector(".eyebrow").textContent = "No 15-minute tasks yet, so here's the most urgent";
+  slot.append(card);
+}
+
+function taskEl(t) {
+  const dl = dueLabel(t), isOpen = state.open === t.id;
+  const el = h("div", { class: "task " + (t.done ? "done" : dl.cls) },
+    h("div", { class: "trow" },
+      h("button", { class: "check", "aria-label": t.done ? "Mark not done" : "Mark done", onclick: e => t.done ? uncomplete(t) : complete(t, e.currentTarget) }, checkSvg()),
+      h("button", { class: "tmain", "aria-expanded": String(isOpen), onclick: () => { state.open = isOpen ? null : t.id; render(); } },
+        h("span", { class: "ttitle" }, t.important ? "❗ " : "", t.title),
+        h("span", { class: "tmeta" }, clsChip(t.cls), h("span", { class: "due " + (t.done ? "" : dl.cls) }, t.done ? "Done" : dl.text), t.est ? h("span", null, "· " + fmtEst(t.est)) : null,
+          t.steps && t.steps.length ? h("span", { class: "bar", title: (t.steps.length - stepsLeft(t)) + " of " + t.steps.length + " steps" }, h("i", { style: "width:" + Math.round(100 * (t.steps.length - stepsLeft(t)) / t.steps.length) + "%" })) : null)),
+      t.done ? null : h("button", { class: "go", onclick: () => startFocus(t), "aria-label": "Start focus timer for " + t.title }, "▶")));
+  if (isOpen) el.append(detailEl(t));
+  return el;
+}
+
+function detailEl(t) {
+  const steps = t.steps || (t.steps = []);
+  const stepInput = h("input", { id: "step-" + t.id, placeholder: "Break it down: add a tiny step, press Enter", "aria-label": "New step" });
+  const addStep = () => { const v = stepInput.value.trim(); if (!v) return; steps.push({ t: v, done: false }); saveTask(t); setTimeout(() => { const i = $("step-" + t.id); i && i.focus(); }); };
+  stepInput.addEventListener("keydown", e => { if (e.key === "Enter") addStep(); });
+  const field = (label, input) => h("label", { class: "field" }, label, input);
+  const title = h("input", { value: t.title, id: "title-" + t.id }); title.addEventListener("change", () => { if (title.value.trim()) { t.title = title.value.trim(); saveTask(t); } });
+  const cls = h("input", { value: t.cls || "", id: "cls-" + t.id, placeholder: "e.g. Math" }); cls.addEventListener("change", () => { t.cls = cap(cls.value.trim()); saveTask(t); });
+  const due = h("input", { type: "date", value: t.due || "", id: "due-" + t.id }); due.addEventListener("change", () => { t.due = due.value || null; saveTask(t); });
+  const time = h("input", { type: "time", value: t.time || "", id: "time-" + t.id }); time.addEventListener("change", () => { t.time = time.value || null; saveTask(t); });
+  return h("div", { class: "tdetail" },
+    (t.snoozes || 0) >= 3 ? h("div", { class: "nudge" }, "Pushed " + t.snoozes + " times. Add one tiny first step below, like \"open the doc\". Starting is the hard part.") : null,
+    h("div", { class: "row", style: "display:flex;gap:16px;flex-wrap:wrap" },
+      t.url ? h("a", { class: "link", href: t.url, target: "_blank", rel: "noopener" }, "Open in Canvas ↗") : null,
+      t.due ? h("a", { class: "link", href: gcalLink(t), target: "_blank", rel: "noopener" }, "Add to Google Calendar ↗") : null),
+    h("div", { class: "fields" }, field("Title", title), field("Class", cls), field("Due", due), field("Time", time)),
+    h("div", { class: "field" }, "How long will it take?", h("div", { class: "estrow" }, [5, 15, 30, 60, 120].map(m => h("button", { "aria-pressed": String(t.est === m), onclick: () => { t.est = t.est === m ? null : m; saveTask(t); } }, fmtEst(m))))),
+    h("div", { class: "field" }, "Steps",
+      steps.length ? h("ul", { class: "steps" }, steps.map((s, i) => h("li", { class: s.done ? "d" : "" },
+        h("input", { type: "checkbox", checked: s.done, "aria-label": s.t, onchange: () => { s.done = !s.done; saveTask(t); if (s.done && !stepsLeft(t)) toast("All steps done. Mark the whole thing done?", "Mark done", () => complete(t)); } }),
+        h("span", { class: "st" }, s.t), h("button", { class: "x", "aria-label": "Remove step", onclick: () => { steps.splice(i, 1); saveTask(t); } }, "×")))) : null,
+      h("div", { class: "stepadd" }, stepInput, h("button", { class: "btn small ghost", onclick: addStep }, "Add"))),
+    h("div", { class: "drow" },
+      h("div", { class: "l" },
+        h("button", { class: "btn small ghost", onclick: () => { t.important = !t.important; saveTask(t); } }, t.important ? "Unmark important" : "Mark important"),
+        t.done ? null : h("button", { class: "btn small ghost", onclick: () => snooze(t) }, "Push to tomorrow")),
+      h("button", { class: "btn small ghost danger", onclick: () => { const copy = JSON.parse(JSON.stringify(t)); deleteTask(t.id); toast("Deleted.", "Undo", () => saveTask(copy)); } }, "Delete")));
+}
+
+function render() {
+  $("streak").textContent = streak();
+  $("doneToday").textContent = state.prefs.history[today()] || 0;
+  renderCanvas();
+  renderNext();
+  const L = $("lists"); L.textContent = "";
+  const t0 = today(), groups = [
+    ["Overdue", "late", t => t.due && diff(t.due, t0) < 0],
+    ["Today", "today", t => t.due === t0],
+    ["Tomorrow", "", t => t.due && diff(t.due, t0) === 1],
+    ["This week", "", t => t.due && diff(t.due, t0) > 1 && diff(t.due, t0) <= 7],
+    ["Later", "", t => t.due && diff(t.due, t0) > 7],
+    ["No date", "", t => !t.due]];
+  const items = open().sort((a, b) => sortKey(a) < sortKey(b) ? -1 : 1);
+  groups.forEach(([name, cls, fn]) => {
+    const g = items.filter(fn); if (!g.length) return;
+    const mins = g.reduce((a, t) => a + (t.est || 0), 0);
+    L.append(h("section", { class: "group " + cls }, h("div", { class: "ghead" }, h("h3", null, name), h("span", { class: "n" }, g.length + (g.length === 1 ? " thing" : " things") + (mins ? " · ~" + fmtEst(mins) : ""))), g.map(taskEl)));
+  });
+  const done = [...state.tasks.values()].filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+  if (done.length) {
+    const box = h("details", { class: "donebox" }, h("summary", null, "Finished (" + done.length + ")"),
+      h("div", { class: "donelist" }, done.slice(0, 30).map(taskEl),
+        h("button", { class: "btn small ghost", style: "align-self:flex-start", onclick: () => { done.forEach(t => deleteTask(t.id)); toast("Cleared finished items. Your streak is kept."); } }, "Clear finished")));
+    if (state.doneOpen) box.open = true;
+    box.addEventListener("toggle", () => state.doneOpen = box.open);
+    L.append(box);
+  }
+}
+
+// ---------- focus timer ----------
+let timer = null, wake = null;
+const focusLen = t => { const e = t.est || 15; return e <= 5 ? 5 : e <= 15 ? 15 : 25; };
+async function startFocus(t, mins) {
+  mins = mins || focusLen(t);
+  const F = $("focus"); F.hidden = false; document.body.style.overflow = "hidden";
+  try { wake = await navigator.wakeLock.request("screen"); } catch (e) { wake = null; }
+  const end = Date.now() + mins * 60000, total = mins * 60000;
+  const C = 2 * Math.PI * 54;
+  const timeEl = h("div", { class: "t" }), msg = h("div", { class: "msg" }, "Just this. Everything else can wait.");
+  const ring = h("div", { class: "ring" }); ring.innerHTML = '<svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="' + C + '" stroke-dashoffset="0"/></svg>'; ring.append(timeEl);
+  const fg = ring.querySelector(".fg");
+  const steps = t.steps || [];
+  const firstOpen = steps.findIndex(s => !s.done);
+  F.textContent = "";
+  F.append(h("div", { class: "fwrap" },
+    h("div", { class: "eyebrow" }, (t.cls ? t.cls + " · " : "") + "Focus for " + mins + " min"),
+    h("h2", null, t.title), ring, msg,
+    steps.length ? h("div", { class: "fsteps" }, h("div", { class: "lbl" }, firstOpen >= 0 ? "Next step" : "All steps done"),
+      h("ul", { class: "steps" }, steps.map(s => h("li", { class: s.done ? "d" : "" }, h("input", { type: "checkbox", checked: s.done, "aria-label": s.t, onchange: e => { s.done = e.target.checked; e.target.parentElement.className = s.done ? "d" : ""; saveTask(t); } }), h("span", { class: "st" }, s.t))))) : null,
+    h("div", { class: "frow" },
+      h("button", { class: "btn hi", onclick: e => { stopFocus(); complete(t, e.currentTarget); } }, "✓ Finished it"),
+      h("button", { class: "btn ghost", onclick: stopFocus }, "Stop"),
+      h("div", { class: "frow", style: "width:100%" }, "Switch timer:", [5, 15, 25, 45].map(m => h("button", { class: "btn small ghost", onclick: () => { clearInterval(timer); startFocus(t, m); } }, m + " min"))))));
+  let rang = false;
+  const tick = () => {
+    const left = Math.max(0, end - Date.now()), s = Math.ceil(left / 1000);
+    timeEl.textContent = Math.floor(s / 60) + ":" + pad(s % 60);
+    fg.setAttribute("stroke-dashoffset", String(C * (1 - left / total)));
+    if (!left && !rang) { rang = true; chime(); msg.textContent = "Time's up. Done, or another round? A 5-minute break counts too."; clearInterval(timer); }
+  };
+  clearInterval(timer); tick(); timer = setInterval(tick, 500);
+}
+function stopFocus() { clearInterval(timer); $("focus").hidden = true; document.body.style.overflow = ""; try { wake && wake.release(); } catch (e) {} wake = null; }
+let actx = null;
+function chime() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); [660, 880, 1100].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; o.connect(g); g.connect(actx.destination); const t = actx.currentTime + i * .18; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .5); o.start(t); o.stop(t + .55); }); } catch (e) {} }
+
+// ---------- confetti & toast ----------
+function celebrate(fromEl) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("confetti"), ctx = cv.getContext("2d"); cv.hidden = false;
+  const dpr = devicePixelRatio || 1; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.scale(dpr, dpr);
+  const r = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+  const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2, cols = ["#FFD93D", "#2F55E0", "#4FD69A", "#FF6B7F", "#FFA94D", "#B07CFF"];
+  const ps = Array.from({ length: 70 }, () => ({ x: x0, y: y0, vx: (Math.random() - .5) * 11, vy: -Math.random() * 11 - 3, s: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
+  let f = 0;
+  (function step() { ctx.clearRect(0, 0, innerWidth, innerHeight); ps.forEach(p => { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); }); if (++f < 90) requestAnimationFrame(step); else { ctx.setTransform(1, 0, 0, 1, 0, 0); cv.hidden = true; } })();
+}
+let toastT = null;
+function toast(text, label, fn) {
+  const T = $("toast"); T.textContent = ""; T.append(h("span", null, text)); if (label) T.append(h("button", { onclick: () => { T.hidden = true; fn(); } }, label));
+  T.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => T.hidden = true, label ? 6000 : 3000);
+}
+
+// ---------- google calendar (pre-filled event link) ----------
+function gcalLink(t) {
+  const d = t.due.replace(/-/g, "");
+  let dates;
+  if (t.time) { const end = new Date(fromYmd(t.due).getTime()); const [hh, mm] = t.time.split(":").map(Number); end.setHours(hh, mm + 15); dates = d + "T" + t.time.replace(":", "") + "00/" + ymd(end).replace(/-/g, "") + "T" + pad(end.getHours()) + pad(end.getMinutes()) + "00"; }
+  else dates = d + "/" + addDays(t.due, 1).replace(/-/g, "");
+  const details = [t.cls ? "Class: " + t.cls : "", t.est ? "About " + fmtEst(t.est) + " of work" : "", (t.steps || []).length ? "Steps:\n" + t.steps.map(s => "- " + s.t).join("\n") : "", t.url || ""].filter(Boolean).join("\n");
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent("Due: " + (t.cls ? t.cls + " " : "") + t.title) + "&dates=" + dates + "&details=" + encodeURIComponent(details);
+}
+
+// ---------- live sync from Google Calendar (Canvas feed lives there) ----------
+const GC = "Google Calendar";
+const COURSE_NAMES = { "ap calculus bc": "AP Calc BC", "ap govt & politics": "AP Gov", "ap literature & comp": "AP Lit", "apologetics and cultural engagement": "Apologetics" };
+function cleanCourse(c) {
+  c = c.replace(/-[^-]*$/, "").replace(/\s*\([^)]*\)/g, "").trim();
+  return COURSE_NAMES[c.toLowerCase()] || (c.length > 18 ? c.split(/\s+/).slice(0, 3).join(" ") : c);
+}
+function eventToTask(ev) {
+  let s = ev.summary || "", cls = "";
+  const br = s.match(/\s*\[([^\]]+)\]\s*$/); if (br) { cls = cleanCourse(br[1]); s = s.slice(0, br.index); }
+  s = s.replace(/\s*\([^)]*-[^)]*\)\s*$/, "").replace(/\s*-\s*Requires Respondus LockDown Browser/i, "").replace(/^Q:\s*/, "Quiz: ").replace(/\s{2,}/g, " ").trim();
+  let due, time = null;
+  if (ev.start && ev.start.dateTime) { const d = new Date(ev.start.dateTime); due = ymd(d); time = pad(d.getHours()) + ":" + pad(d.getMinutes()); if (time === "00:00") time = null; }
+  else if (ev.start && ev.start.date) due = String(ev.start.date).slice(0, 10);
+  else return null;
+  return { id: "gc-" + ev.id, src: "canvas", gcalId: ev.id, title: cap(s || "Canvas item"), cls, due, time };
+}
+state.gcal = { status: "idle", msg: "" };
+async function gcalSync(manual) {
+  if (!state.token) { if (manual) signIn(); return; }
+  state.gcal = { status: "busy", msg: "Checking Google Calendar…" }; render();
+  const CAL = "https://www.googleapis.com/calendar/v3";
+  const call = async (tool, input) => {
+    if (tool === "list_calendars") return gfetch(CAL + "/users/me/calendarList?maxResults=250");
+    const q = new URLSearchParams({ timeMin: fromYmd(input.startTime.slice(0, 10)).toISOString(), timeMax: fromYmd(input.endTime.slice(0, 10)).toISOString(), singleEvents: "true", orderBy: "startTime", maxResults: "250" });
+    return gfetch(CAL + "/calendars/" + encodeURIComponent(input.calendarId) + "/events?" + q);
+  };
+  try {
+    let calId = state.prefs.gcalCanvasId;
+    if (!calId) {
+      const cals = (await call("list_calendars", {})) || {};
+      const c = (cals.items || []).find(c => /canvas/i.test(c.summary || "") || /canvas/i.test(c.description || ""));
+      if (!c) { state.gcal = { status: "nocal", msg: "No Canvas calendar found in your Google Calendar yet. Add your Canvas feed there (Other calendars → From URL) and it'll show up here." }; render(); return; }
+      calId = c.id; state.prefs.gcalCanvasId = calId; savePrefs();
+    }
+    const t0 = today();
+    const res = (await call("list_events", { calendarId: calId, startTime: t0 + "T00:00:00", endTime: addDays(t0, 21) + "T00:00:00", orderBy: "startTime", pageSize: 250 })) || {};
+    const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    let added = 0, moved = 0;
+    (res.items || []).forEach(ev => {
+      if (ev.status === "cancelled") return;
+      const t = eventToTask(ev); if (!t) return;
+      const old = state.tasks.get(t.id) || [...state.tasks.values()].find(x => x.src === "canvas" && norm(x.title) === norm(t.title) && x.due === t.due);
+      if (old) { if (!old.done && (old.due !== t.due || (old.time || null) !== t.time) && old.gcalId === t.gcalId) { old.due = t.due; old.time = t.time; saveTask(old); moved++; } return; }
+      added++; saveTask(Object.assign(t, { est: null, important: false, steps: [], done: false, created: Date.now(), snoozes: 0 }));
+    });
+    state.sync = { last: Date.now(), added, moved };
+    state.prefs.sync = state.sync; savePrefs();
+    state.gcal = { status: "ok", msg: "" };
+    if (added || moved || manual) toast("Google Calendar: " + added + " new" + (moved ? ", " + moved + " moved" : "") + ".");
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "signin") { state.gcal = { status: "signin", msg: "" }; render(); return; }
+    const msg = code === "forbidden" ? "Google said this site isn't allowed to read your calendar. Your school account may block outside apps; see the README."
+      : "Couldn't reach Google Calendar just now. Your list is still here; it'll try again next time.";
+    state.gcal = { status: "err", msg };
+  }
+  render();
+}
+
+// ---------- canvas calendar ----------
+function parseICS(text) {
+  const lines = text.replace(/\r?\n[ \t]/g, "").split(/\r?\n/), evs = []; let cur = null;
+  const unesc = v => v.replace(/\\n/gi, "\n").replace(/\\([,;\\])/g, "$1");
+  for (const line of lines) {
+    if (/^BEGIN:VEVENT/i.test(line)) cur = {};
+    else if (/^END:VEVENT/i.test(line)) { if (cur) evs.push(cur); cur = null; }
+    else if (cur) { const i = line.indexOf(":"); if (i < 0) continue; const key = line.slice(0, i).split(";")[0].toUpperCase(); if (!(key in cur)) cur[key] = unesc(line.slice(i + 1)); }
+  }
+  return evs;
+}
+function icsDate(v) {
+  const m = (v || "").match(/^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)(\d\d)(Z)?)?/); if (!m) return null;
+  if (!m[4]) return { due: m[1] + "-" + m[2] + "-" + m[3], time: null };
+  const d = m[7] ? new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5])) : new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5]);
+  const time = pad(d.getHours()) + ":" + pad(d.getMinutes());
+  return { due: ymd(d), time: time === "00:00" ? null : time };
+}
+function shortCourse(c) {
+  c = c.split(/\s*[:|]\s*|\s+-\s+|\s+(?:Section|Sec\.?|Period|Per\.?)\s+|\s*\(/i)[0].trim();
+  return c.length > 22 ? c.split(/\s+/).slice(0, 3).join(" ") : c;
+}
+function importICS(text) {
+  const evs = parseICS(text);
+  if (!evs.length) { toast("That file doesn't look like a calendar. Use the .ics file from Canvas's Calendar Feed link."); return; }
+  const isAssign = e => /assignment/i.test((e.UID || "") + " " + (e.URL || ""));
+  const pick = evs.some(isAssign) ? evs.filter(isAssign) : evs;
+  let added = 0, moved = 0; const t0 = today();
+  pick.forEach(e => {
+    const when = icsDate(e.DTSTART || e.DUE); if (!when || diff(when.due, t0) < 0) return;
+    let title = (e.SUMMARY || "Canvas item").trim(), cls = "";
+    const br = title.match(/\s*\[([^\]]+)\]\s*$/); if (br) { cls = shortCourse(br[1]); title = title.slice(0, br.index).trim(); }
+    const id = "cv-" + (e.UID || title + when.due).replace(/[^A-Za-z0-9_-]/g, "").slice(-120);
+    const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const old = state.tasks.get(id) || [...state.tasks.values()].find(x => x.src === "canvas" && norm(x.title) === norm(cap(title)));
+    if (old) { if (old.due !== when.due || old.time !== when.time) { old.due = when.due; old.time = when.time; saveTask(old); moved++; } return; }
+    added++;
+    saveTask({ id, src: "canvas", url: /^https:\/\//.test(e.URL || "") ? e.URL : null, title: cap(title), cls, due: when.due, time: when.time, est: null, important: false, steps: [], done: false, created: Date.now(), snoozes: 0 });
+  });
+  state.prefs.canvasLast = Date.now(); savePrefs(); state.canvasOpen = false; render();
+  toast(added || moved ? "From Canvas: " + added + " new" + (moved ? ", " + moved + " with new due dates" : "") + "." : "Canvas checked. Nothing new.");
+}
+function readFile(f) { if (!f) return; const r = new FileReader(); r.onload = () => importICS(String(r.result)); r.readAsText(f); }
+const feedUrl = () => (state.prefs.canvasUrl || "").replace(/^webcal:\/\//i, "https://");
+function ago(ms) { const d = Math.floor((Date.now() - ms) / 864e5); return d <= 0 ? "today" : d === 1 ? "yesterday" : d + " days ago"; }
+
+function renderCanvas() {
+  const slot = $("canvasSlot"); slot.textContent = "";
+  state.sync = state.sync || state.prefs.sync;
+  const btn = $("canvasBtn"), url = feedUrl(), auto = state.sync && state.sync.last, last = Math.max(state.prefs.canvasLast || 0, auto || 0) || null;
+  btn.className = "hbtn" + (last ? " on" : ""); btn.textContent = auto ? "✓ Canvas auto-sync" : last ? "✓ Canvas" : "Connect Canvas"; btn.setAttribute("aria-expanded", String(!!state.canvasOpen));
+  const g = state.gcal || {};
+  if (g.status === "signin") { btn.className = "hbtn"; btn.textContent = "Connect Google"; slot.append(h("div", { class: "banner" }, h("span", null, "Connect your Google account to pull in Canvas homework from your calendar and sync across devices."), h("button", { class: "btn small", onclick: signIn }, "Connect Google"))); return; }
+  if (g.status === "err" || g.status === "nocal") slot.append(h("div", { class: "banner" }, h("span", null, g.msg), h("button", { class: "btn small", onclick: () => gcalSync(true) }, "Try again")));
+  if (auto) {
+    if (state.canvasOpen) slot.append(h("div", { class: "canvas" },
+      h("div", { style: "display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap" }, h("h2", null, "Canvas updates itself"), h("button", { class: "x", "aria-label": "Close", onclick: () => { state.canvasOpen = false; render(); } }, "×")),
+      h("p", { style: "margin:0" }, "Every time you open this page, new Canvas assignments get pulled in from your Google Calendar, and due dates that changed get moved. Things you checked off or broke into steps stay the way you left them."),
+      h("div", { class: "row" }, h("button", { class: "btn small", disabled: g.status === "busy", onclick: () => gcalSync(true) }, g.status === "busy" ? "Syncing…" : "Sync now")),
+      h("p", { class: "small", style: "margin:0" }, "Last update " + ago(auto) + (state.sync.added != null ? ": " + state.sync.added + " new" + (state.sync.moved ? ", " + state.sync.moved + " moved" : "") : "") + ". Canvas doesn't share what you've submitted, so check things off here.")));
+    return;
+  }
+  if (!state.canvasOpen) {
+    if (last && Date.now() - last > 864e5) slot.append(h("div", { class: "banner" }, h("span", null, "Canvas last updated " + ago(last) + ". New assignments may be waiting."), h("button", { class: "btn small", onclick: () => { state.canvasOpen = true; render(); } }, "Update")));
+    return;
+  }
+  const fileIn = h("input", { type: "file", accept: ".ics,text/calendar", id: "icsFile", hidden: true, onchange: e => readFile(e.target.files[0]) });
+  const urlIn = h("input", { id: "feedUrl", value: state.prefs.canvasUrl || "", placeholder: "https://yourschool.instructure.com/feeds/calendars/user_….ics", "aria-label": "Canvas calendar feed link" });
+  const saveUrl = () => { const v = urlIn.value.trim(); if (v && !/^(https|webcal):\/\/\S+$/i.test(v)) { toast("That isn't a link. Copy the whole Calendar Feed address from Canvas."); return; } state.prefs.canvasUrl = v; savePrefs(); render(); };
+  urlIn.addEventListener("change", saveUrl);
+  const drop = h("div", { class: "drop" }, h("span", null, "Drop the downloaded .ics file here"), h("button", { class: "btn small", onclick: () => fileIn.click() }, "Choose file"), fileIn);
+  ["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("over")));
+  drop.addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); readFile(e.dataTransfer.files[0]); });
+  slot.append(h("div", { class: "canvas" },
+    h("div", { style: "display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap" }, h("h2", null, last ? "Update from Canvas" : "Bring in your Canvas assignments"), h("button", { class: "x", "aria-label": "Close", onclick: () => { state.canvasOpen = false; render(); } }, "×")),
+    h("ol", null,
+      url ? null : h("li", null, h("p", null, "In Canvas, open ", h("b", null, "Calendar"), " and click ", h("b", null, "Calendar Feed"), " (bottom right). Copy the link and paste it here. You only do this once."),
+        h("div", { class: "row" }, urlIn, h("button", { class: "btn small", onclick: saveUrl }, "Save"))),
+      h("li", null, h("p", null, url ? "Download your latest Canvas calendar:" : "Then download your calendar with that link."),
+        url ? h("div", { class: "row" }, h("a", { class: "btn small", href: url, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Download from Canvas"), h("button", { class: "btn small ghost", onclick: () => { state.prefs.canvasUrl = ""; savePrefs(); render(); } }, "Change link")) : null),
+      h("li", null, h("p", null, "Drop the file here. New assignments get added with their class and due time."), drop)),
+    h("p", { class: "small", style: "margin:0" }, "Running it again only adds what's new and moves changed due dates. Anything you checked off or broke into steps stays the way you left it. Canvas doesn't tell us what you've submitted, so check things off here. Works best on a laptop; phones sometimes try to add the file to your calendar app instead.", last ? " Last updated " + ago(last) + "." : "")));
+}
+
+// ---------- input wiring ----------
+const q = $("q");
+function submit() { if (addFromText(q.value)) { q.value = ""; renderPreview(); } q.focus(); }
+q.addEventListener("input", renderPreview);
+q.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+q.addEventListener("paste", e => { const t = (e.clipboardData || {}).getData ? e.clipboardData.getData("text") : ""; if (t && t.includes("\n")) { e.preventDefault(); addFromText(t); } });
+$("addBtn").addEventListener("click", submit);
+$("canvasBtn").addEventListener("click", () => { if (state.gcal && state.gcal.status === "signin") { signIn(); return; } state.canvasOpen = !state.canvasOpen; render(); });
+// a calendar file dropped anywhere on the page gets imported
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f && /\.ics$|calendar/i.test(f.name + f.type)) { e.preventDefault(); readFile(f); } });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !$("focus").hidden) stopFocus();
+  if ((e.key === "n" || e.key === "/") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && $("focus").hidden) { e.preventDefault(); q.focus(); }
+});
+// roll over at midnight / when coming back to the tab
+let lastDay = today();
+setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); } }, 60000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) return; render(); if (state.token && (!state.sync || Date.now() - (state.sync.last || 0) > 30 * 60000)) gcalSync(); });
+
+lsLoad(); state.sync = state.prefs.sync; renderPreview(); render(); setSync(false); initGoogle();
+if (GOOGLE_CLIENT_ID) setInterval(() => { if (state.token && Date.now() > state.tokenExp - 120000 && !document.hidden) tokenClient.requestAccessToken({ prompt: "" }); }, 60000);
+})();
+</script>
+
+</body>
+</html>
