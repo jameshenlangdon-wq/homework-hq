@@ -216,6 +216,20 @@ h1 mark{background:none;color:var(--pen);padding:0}
 .fwrap h2{font-weight:500}
 .ring .t{font-weight:500}
 .next .btn.hi,.btn.hi{background:var(--pen);color:var(--card)}
+
+/* ---- class colors ---- */
+.chip.cls{background:color-mix(in srgb,var(--c) 16%,var(--card));color:var(--ink)}
+.chip.cls .dot{background:var(--c)}
+.task.has-cls{border-left:6px solid var(--c);background:color-mix(in srgb,var(--c) 6%,var(--card))}
+.task.has-cls .check{border-color:color-mix(in srgb,var(--c) 55%,var(--line))}
+.task.has-cls .check:hover{background:color-mix(in srgb,var(--c) 15%,var(--card));border-color:var(--c)}
+.task.done.has-cls{border-left-color:var(--line);background:var(--card)}
+.next.has-cls{border-top:8px solid var(--c);background:color-mix(in srgb,var(--c) 5%,var(--card))}
+.next.has-cls .eyebrow{color:var(--c)}
+.next.has-cls .acts .btn:not(.ghost){background:var(--c);color:#fff}
+.legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.legend .lbl{font-size:.82rem;color:var(--muted);margin-right:4px}
+.legend button{border:0;cursor:pointer}
 @media (max-width:480px){.addrow .btn{padding:12px 14px}.trow{gap:10px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -329,7 +343,15 @@ function parse(raw) {
 
 // ---------- class colours ----------
 const HUES = [222, 340, 160, 28, 268, 190, 0, 95, 300, 45];
-function clsColor(name) { let h = 0; for (const c of name.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0; return "hsl(" + HUES[h % HUES.length] + " 40% 55%)"; }
+// Each class keeps one color from a calm, easy-to-tell-apart set. Tap a class in "Your classes" to change it.
+const CLASS_COLORS = ["#4A78B8", "#C8664F", "#8A5AA8", "#B8892A", "#3E8E7E", "#B85578", "#6E8B3D", "#5B6B8C", "#2E8FA8", "#A0663A"];
+function clsIndex(name) {
+  const k = name.toLowerCase(), m = state.prefs.classColors || (state.prefs.classColors = {});
+  if (m[k] == null) { const used = new Set(Object.values(m)); let i = 0; while (used.has(i) && i < CLASS_COLORS.length) i++; m[k] = i % CLASS_COLORS.length; savePrefs(); }
+  return m[k];
+}
+function clsColor(name) { return name ? CLASS_COLORS[clsIndex(name)] : "var(--line)"; }
+function cycleClassColor(name) { const m = state.prefs.classColors, k = name.toLowerCase(); m[k] = ((m[k] ?? 0) + 1) % CLASS_COLORS.length; savePrefs(); render(); }
 
 // ---------- setup ----------
 // Paste your Google OAuth "Web application" client ID here (see README.md).
@@ -463,7 +485,7 @@ function h(tag, attrs, ...kids) {
   return e;
 }
 const checkSvg = () => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.innerHTML = '<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>'; s.style.stroke = "var(--ok)"; return s; };
-const clsChip = c => c ? h("span", { class: "chip cls", style: "background:color-mix(in srgb," + clsColor(c) + " 18%,transparent)" }, h("span", { class: "dot", style: "background:" + clsColor(c) }), c) : null;
+const clsChip = c => c ? h("span", { class: "chip cls", style: "--c:" + clsColor(c) }, h("span", { class: "dot" }), c) : null;
 
 function renderPreview() {
   const v = $("q").value, el = $("preview"); el.textContent = "";
@@ -491,10 +513,10 @@ function renderNext() {
   }
   const t = pickNext();
   const dl = dueLabel(t), more = all.length - 1;
-  const card = h("div", { class: "next" },
+  const card = h("div", { class: "next" + (t.cls ? " has-cls" : ""), style: "--c:" + clsColor(t.cls) },
     h("div", { class: "eyebrow" }, state.quickWin ? "Quick win" : "Just this one"),
     h("h2", null, t.title),
-    h("div", { class: "meta" }, t.cls ? h("span", null, t.cls) : null, h("span", null, dl.text), t.est ? h("span", null, "~" + fmtEst(t.est)) : null, t.steps && t.steps.length ? h("span", null, (t.steps.length - stepsLeft(t)) + "/" + t.steps.length + " steps") : null),
+    h("div", { class: "meta" }, clsChip(t.cls), h("span", null, dl.text), t.est ? h("span", null, "~" + fmtEst(t.est)) : null, t.steps && t.steps.length ? h("span", null, (t.steps.length - stepsLeft(t)) + "/" + t.steps.length + " steps") : null),
     (t.snoozes || 0) >= 3 ? h("div", { class: "nudge" }, "You've pushed this " + t.snoozes + " times. Could you shrink it to a 5-minute first step? Open it below and add one.") : null,
     h("div", { class: "acts" },
       h("button", { class: "btn", onclick: () => startFocus(t) }, "Start a " + (focusLen(t)) + " min focus"),
@@ -509,7 +531,7 @@ function renderNext() {
 
 function taskEl(t) {
   const dl = dueLabel(t), isOpen = state.open === t.id;
-  const el = h("div", { class: "task " + (t.done ? "done" : dl.cls) },
+  const el = h("div", { class: "task " + (t.done ? "done" : dl.cls) + (t.cls ? " has-cls" : ""), style: "--c:" + clsColor(t.cls) },
     h("div", { class: "trow" },
       h("button", { class: "check", "aria-label": t.done ? "Mark not done" : "Mark done", onclick: e => t.done ? uncomplete(t) : complete(t, e.currentTarget) }, checkSvg()),
       h("button", { class: "tmain", "aria-expanded": String(isOpen), onclick: () => { state.open = isOpen ? null : t.id; render(); } },
@@ -556,6 +578,9 @@ function render() {
   renderCanvas();
   renderNext();
   const L = $("lists"); L.textContent = "";
+  const classes = [...new Set(open().map(t => t.cls).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  if (classes.length) L.append(h("div", { class: "legend" }, h("span", { class: "lbl" }, "Your classes"),
+    classes.map(c => h("button", { class: "chip cls", style: "--c:" + clsColor(c), title: "Tap to change " + c + "'s color", onclick: () => cycleClassColor(c) }, h("span", { class: "dot" }), c))));
   const t0 = today(), groups = [
     ["Overdue", "late", t => t.due && diff(t.due, t0) < 0],
     ["Today", "today", t => t.due === t0],
@@ -599,7 +624,7 @@ async function startFocus(t, mins) {
   const C = 2 * Math.PI * 54;
   const timeEl = h("div", { class: "t" }), msg = h("div", { class: "msg" }, "Just this. Everything else can wait.");
   const ring = h("div", { class: "ring" }); ring.innerHTML = '<svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="' + C + '" stroke-dashoffset="0"/></svg>'; ring.append(timeEl);
-  const fg = ring.querySelector(".fg");
+  const fg = ring.querySelector(".fg"); if (t.cls) fg.style.stroke = clsColor(t.cls);
   const steps = t.steps || [];
   const firstOpen = steps.findIndex(s => !s.done);
   F.textContent = "";
