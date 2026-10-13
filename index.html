@@ -230,6 +230,40 @@ h1 mark{background:none;color:var(--pen);padding:0}
 .legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .legend .lbl{font-size:.82rem;color:var(--muted);margin-right:4px}
 .legend button{border:0;cursor:pointer}
+
+/* ---- view switch + calendar ---- */
+.seg{display:inline-flex;align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:600;padding:6px 16px;border-radius:999px}
+.seg button[aria-selected="true"]{background:var(--pen);color:var(--card)}
+.cal{display:flex;flex-direction:column;gap:12px}
+.cal-head{display:flex;align-items:center;gap:6px}
+.cal-head h3{font-family:var(--display);font-weight:500;font-size:1.1rem;margin:0;min-width:9.5em;text-align:center}
+.cal-head .x{font-size:1.5rem;line-height:1;padding:2px 10px}
+.cal-head .btn{margin-left:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-dow{font-size:.75rem;color:var(--muted);text-align:center;font-weight:700;padding-bottom:2px}
+.cal-day{background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:92px;padding:5px;display:flex;flex-direction:column;gap:3px;text-align:left;min-width:0;overflow:hidden;color:var(--ink)}
+.cal-day.out{opacity:.45}
+.cal-day .num{font-size:.8rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.cal-day.today .num{background:var(--pen);color:var(--card);border-radius:999px;padding:0 7px;align-self:flex-start}
+.cal-day.sel{border:2px solid var(--pen);padding:4px}
+.cal-day.late .num{color:var(--late)}
+.cal-day .items{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal-day .it{display:flex;align-items:center;gap:4px;font-size:.72rem;line-height:1.2;min-width:0;background:color-mix(in srgb,var(--c) 14%,transparent);border-radius:5px;padding:1px 4px}
+.cal-day .it i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--c)}
+.cal-day .it .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cal-day .it.done{opacity:.5;text-decoration:line-through}
+.cal-day .more{font-size:.7rem;color:var(--muted);font-weight:700}
+.cal-sel{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+@media (max-width:560px){
+  .cal-day{min-height:58px;align-items:center;padding:4px 2px}
+  .cal-day.sel{padding:3px 1px}
+  .cal-day .items{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:3px}
+  .cal-day .it{background:none;padding:0}
+  .cal-day .it .tx{display:none}
+  .cal-day .it i{width:8px;height:8px}
+  .cal-day.today .num{align-self:center}
+}
 @media (max-width:480px){.addrow .btn{padding:12px 14px}.trow{gap:10px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -337,6 +371,7 @@ function parse(raw) {
     }
   }
   out.title = s ? cap(s) : "";
+  if (!out.due && state.addDue) { out.due = state.addDue; out.dateGiven = true; }
   if (!out.due) out.due = addDays(t0, 1);
   return out;
 }
@@ -489,6 +524,7 @@ const clsChip = c => c ? h("span", { class: "chip cls", style: "--c:" + clsColor
 
 function renderPreview() {
   const v = $("q").value, el = $("preview"); el.textContent = "";
+  if (!v.trim() && state.addDue) { el.append(h("span", { class: "chip" }, "Due " + dueLabel({ due: state.addDue }).text.replace(/^Due /, "")), h("span", null, "Just type what it is."), h("button", { class: "x", "aria-label": "Cancel", onclick: () => { state.addDue = null; renderPreview(); } }, "×")); return; }
   if (!v.trim()) { el.append(h("span", { class: "hint" }, "Try ", h("code", null, "bio reading ch 4 tmrw 30m"), " or ", h("code", null, "essay fri 11:59pm"))); return; }
   if (v.includes("\n")) { el.append(h("span", null, "Adding " + v.split("\n").filter(s => s.trim()).length + " things")); return; }
   const p = parse(v);
@@ -589,6 +625,12 @@ function render() {
     ["Later", "", t => t.due && diff(t.due, t0) > 7],
     ["No date", "", t => !t.due]];
   const items = open().sort((a, b) => sortKey(a) < sortKey(b) ? -1 : 1);
+  const setView = v => { state.view = v; state.addDue = null; try { localStorage.setItem("hwhq.view", v); } catch (e) {} render(); renderPreview(); };
+  L.append(h("div", { class: "seg", role: "tablist" },
+    h("button", { role: "tab", "aria-selected": String(state.view !== "cal"), onclick: () => setView("list") }, "List"),
+    h("button", { role: "tab", "aria-selected": String(state.view === "cal"), onclick: () => setView("cal") }, "Calendar")));
+  if (state.view === "cal") L.append(calendarEl());
+  else {
   // calm by default: only overdue + today are shown; the rest waits behind one button
   const filled = groups.map(([name, cls, fn]) => [name, cls, items.filter(fn)]).filter(x => x[2].length);
   let shown = filled.filter(x => x[1]); if (!shown.length) shown = filled.slice(0, 1);
@@ -599,6 +641,7 @@ function render() {
   });
   if (hiddenN) L.append(h("button", { class: "showall", "aria-expanded": String(!!state.showAll), onclick: () => { state.showAll = !state.showAll; try { localStorage.setItem("hwhq.showAll", state.showAll ? "1" : ""); } catch (e) {} render(); } },
     state.showAll ? "Hide what's coming up" : "Show what's coming up (" + hiddenN + ")"));
+  }
   // one calm line of orientation above the main card
   const td = items.filter(t => t.due && diff(t.due, t0) <= 0), tm = td.reduce((a, t) => a + (t.est || 0), 0);
   if (state.tasks.size && items.length) $("nextSlot").prepend(h("p", { class: "dayline" }, td.length ? h("span", null, "Today: ", h("b", null, td.length + (td.length === 1 ? " thing" : " things")), tm ? ", about " + fmtEst(tm) : "", ". One at a time.") : "Nothing due today. Getting ahead is a bonus."));
@@ -611,6 +654,47 @@ function render() {
     box.addEventListener("toggle", () => state.doneOpen = box.open);
     L.append(box);
   }
+}
+
+
+// ---------- calendar view ----------
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+function calendarEl() {
+  const t0 = today();
+  if (!state.calMonth) state.calMonth = t0.slice(0, 7);
+  if (!state.calDay) state.calDay = t0;
+  const [y, m] = state.calMonth.split("-").map(Number);
+  const first = new Date(y, m - 1, 1), start = addDays(ymd(first), -first.getDay());
+  const byDay = {};
+  state.tasks.forEach(t => { if (t.due) (byDay[t.due] = byDay[t.due] || []).push(t); });
+  Object.values(byDay).forEach(l => l.sort((a, b) => (a.done - b.done) || (sortKey(a) < sortKey(b) ? -1 : 1)));
+  const shift = n => { const d = new Date(y, m - 1 + n, 1); state.calMonth = ymd(d).slice(0, 7); render(); };
+  const pick = d => { state.calDay = d; state.addDue = null; if (d.slice(0, 7) !== state.calMonth) state.calMonth = d.slice(0, 7); render(); renderPreview(); };
+  const grid = h("div", { class: "cal-grid", role: "grid" }, DOW.map(d => h("div", { class: "cal-dow" }, d.slice(0, 2))));
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i), list = byDay[d] || [], inMonth = d.slice(0, 7) === state.calMonth;
+    if (i === 35 && !inMonth) break;
+    const left = list.filter(t => !t.done);
+    grid.append(h("button", { class: "cal-day" + (inMonth ? "" : " out") + (d === t0 ? " today" : "") + (d === state.calDay ? " sel" : "") + (left.length && d < t0 ? " late" : ""),
+      "aria-label": fromYmd(d).toDateString() + ", " + (left.length ? left.length + " due" : "nothing due"), onclick: () => pick(d) },
+      h("span", { class: "num" }, String(+d.slice(8))),
+      h("span", { class: "items" }, list.slice(0, 3).map(t => h("span", { class: "it" + (t.done ? " done" : ""), style: "--c:" + clsColor(t.cls) }, h("i"), h("span", { class: "tx" }, t.title))),
+        list.length > 3 ? h("span", { class: "more" }, "+" + (list.length - 3)) : null)));
+  }
+  const sel = byDay[state.calDay] || [], dt = fromYmd(state.calDay);
+  const dayName = state.calDay === t0 ? "Today" : diff(state.calDay, t0) === 1 ? "Tomorrow" : DOW[dt.getDay()] + ", " + MONTHS[dt.getMonth()].slice(0, 3) + " " + dt.getDate();
+  const mins = sel.filter(t => !t.done).reduce((a, t) => a + (t.est || 0), 0);
+  return h("section", { class: "cal" },
+    h("div", { class: "cal-head" },
+      h("button", { class: "x", "aria-label": "Previous month", onclick: () => shift(-1) }, "‹"),
+      h("h3", null, MONTHS[m - 1] + " " + y),
+      h("button", { class: "x", "aria-label": "Next month", onclick: () => shift(1) }, "›"),
+      state.calMonth !== t0.slice(0, 7) || state.calDay !== t0 ? h("button", { class: "btn small ghost", onclick: () => pick(t0) }, "Today") : null),
+    grid,
+    h("div", { class: "cal-sel" },
+      h("div", { class: "ghead" }, h("h3", null, dayName), h("span", { class: "n" }, sel.length ? sel.length + (sel.length === 1 ? " thing" : " things") + (mins ? " · ~" + fmtEst(mins) : "") : "Nothing due")),
+      sel.map(taskEl),
+      h("button", { class: "showall", onclick: () => { state.addDue = state.calDay; renderPreview(); const q = $("q"); q.focus(); scrollTo({ top: 0, behavior: "smooth" }); } }, "+ Add homework for " + (dayName === "Today" || dayName === "Tomorrow" ? dayName.toLowerCase() : dayName))));
 }
 
 // ---------- focus timer ----------
@@ -824,7 +908,7 @@ function renderCanvas() {
 
 // ---------- input wiring ----------
 const q = $("q");
-function submit() { if (addFromText(q.value)) { q.value = ""; renderPreview(); } q.focus(); }
+function submit() { if (addFromText(q.value)) { q.value = ""; state.addDue = null; renderPreview(); } q.focus(); }
 q.addEventListener("input", renderPreview);
 q.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
 q.addEventListener("paste", e => { const t = (e.clipboardData || {}).getData ? e.clipboardData.getData("text") : ""; if (t && t.includes("\n")) { e.preventDefault(); addFromText(t); } });
@@ -842,7 +926,7 @@ let lastDay = today();
 setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); } }, 60000);
 document.addEventListener("visibilitychange", () => { if (document.hidden) return; render(); if (state.token && (!state.sync || Date.now() - (state.sync.last || 0) > 30 * 60000)) gcalSync(); });
 
-try { state.showAll = localStorage.getItem("hwhq.showAll") === "1"; } catch (e) {}
+try { state.showAll = localStorage.getItem("hwhq.showAll") === "1"; state.view = localStorage.getItem("hwhq.view") || "list"; } catch (e) {}
 lsLoad(); state.sync = state.prefs.sync; renderPreview(); render(); setSync(false); initGoogle();
 if (GOOGLE_CLIENT_ID) setInterval(() => { if (state.token && Date.now() > state.tokenExp - 120000 && !document.hidden) tokenClient.requestAccessToken({ prompt: "" }); }, 60000);
 })();
